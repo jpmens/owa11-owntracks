@@ -41,7 +41,9 @@ void parse_to_json(char *portion)
 
 		for (p = strtok_r(buf, "|", &l); p && *p; p = strtok_r(NULL, "|", &l)) {
 			char *bp;
+#if DEBUG
 			fprintf(stderr, "\t%s\n", p);
+#endif
 
 			if (virgin) {
 				virgin = !virgin;
@@ -106,7 +108,9 @@ void do_line(char *payload)
 	char *p, *bufsave = buf;
 
 	for (p = strtok(buf, "#"); p && *p; p = strtok(NULL, "#")) {
+#if DEBUG
 		fprintf(stderr, "%s\n", p);
+#endif
 		parse_to_json(p);
 	}
 	free(bufsave);

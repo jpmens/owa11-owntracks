@@ -67,10 +67,10 @@ void chop(char *portion)
 						json_append_member(o, "trip", json_mknumber(atol(bp)));
 						break;
 					case 16:
-						json_append_member(o, "vel", json_mknumber(atof(bp)));
+						json_append_member(o, "vel", json_mknumber(atol(bp)));
 						break;
 					case 19:
-						json_append_member(o, "cog", json_mknumber(atof(bp)));
+						json_append_member(o, "cog", json_mknumber(atol(bp)));
 						break;
 
 					// FIXME: no alt?

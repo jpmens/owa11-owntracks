@@ -23,7 +23,12 @@
 #include <stdbool.h>
 #include "json.h"
 
-void chop(char *portion)
+/*
+ * Parse the elements out of an owa11 "record" (e.g. D|O|xxx|yyy|...)
+ * and construct an OwnTracks JSON message to stdout.
+ */
+
+void parse_to_json(char *portion)
 {
 	if (*portion == 'D' && strncmp(portion, "D|O|", 4) == 0) {
 		char *buf = strdup(portion + 4);
@@ -89,14 +94,20 @@ void chop(char *portion)
 	}
 }
 
-void parse(char *payload)
+/*
+ * Split up individual portions of the MQTT payload which are delineated
+ * by '#' into their own 'records', and handle them individually. The
+ * owa11 can stuff several of these into a single MQTT publish.
+ */
+
+void do_line(char *payload)
 {
 	char *buf = strdup(payload);
 	char *p, *bufsave = buf;
 
 	for (p = strtok(buf, "#"); p && *p; p = strtok(NULL, "#")) {
 		fprintf(stderr, "%s\n", p);
-		chop(p);
+		parse_to_json(p);
 	}
 	free(bufsave);
 }
@@ -105,14 +116,12 @@ int main()
 {
 	char buf[8192];
 
-	// parse(IN);
-
 	while (fgets(buf, sizeof(buf), stdin) != NULL) {
 		buf[strlen(buf) - 1] = 0;
 		char *sp = strchr(buf, ' ');
 
 		sp = sp ? sp + 1 : buf;
-		parse(sp);
+		do_line(sp);
 	}
 	return 0;
 }

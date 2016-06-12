@@ -87,7 +87,6 @@ void parse_to_json(char *portion)
 
 		if ((js = json_stringify(o, NULL)) != NULL) {
 			printf("%s\n", js);
-			fflush(stdout);
 			free(js);
 		}
 		json_delete(o);
@@ -119,6 +118,8 @@ void do_line(char *payload)
 int main()
 {
 	char buf[8192];
+
+	setbuf(stdout, NULL);
 
 	while (fgets(buf, sizeof(buf), stdin) != NULL) {
 		buf[strlen(buf) - 1] = 0;

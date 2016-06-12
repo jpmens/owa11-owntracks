@@ -80,6 +80,7 @@ void chop(char *portion)
 
 		if ((js = json_stringify(o, NULL)) != NULL) {
 			printf("%s\n", js);
+			fflush(stdout);
 			free(js);
 		}
 		json_delete(o);

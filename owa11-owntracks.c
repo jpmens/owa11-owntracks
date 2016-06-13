@@ -23,9 +23,81 @@
 #include <stdbool.h>
 #include "json.h"
 
+
+/*
+ * Append a member to the Json node at `o'.
+ */
+
+void append(JsonNode *o, int subtype, char *str_value)
+{
+	switch (subtype) {
+		case 1:	/* external voltage, double, V */
+			break;
+		case 2: /* Internal battery voltage, double, V */
+			json_append_member(o, "batt", json_mknumber(atof(str_value)));
+			break;
+		case 3: /* Movement given by accelerometer, bool */
+			break;
+		case 4: /* Range (position accuracy), double */
+			break;
+		case 5: /* Latitude, double */
+			json_append_member(o, "lat", json_mknumber(atof(str_value)));
+			break;
+		case 6: /* Longitude, double */
+			json_append_member(o, "lon", json_mknumber(atof(str_value)));
+			break;
+		case 7: /* Cell ID, long int */
+			break;
+		case 8: /* LAC (Location Area Code), long int */
+			break;
+		case 9: /* PLMN, integer */
+			break;
+		case 10: /* RSSI GSM Received signal strength indicator (enum 0-5) */
+			break;
+		case 11: /* GPS coverage, boolean */
+			break;
+
+		case 12:
+			json_append_member(o, "trip", json_mknumber(atol(str_value)));
+			break;
+		case 13: /* unused */
+		case 14: /* unused */
+		case 15: /* unused */
+			break;
+		case 16:
+			json_append_member(o, "vel", json_mknumber(atol(str_value)));
+			break;
+		case 17: /* Last valid position timestamp, Unix epoch, long int */
+			break;
+		case 18: /* Outside geofence flag, boolean */
+			break;
+		case 19: /* Course over ground, double */
+			json_append_member(o, "cog", json_mknumber(atol(str_value)));
+			break;
+		case 40: /* 1-Wire temperature 1, double */
+			break;
+		case 41: /* 1-Wire temperature 2, double */
+			break;
+		case 42: /* 1-Wire temperature 3, double */
+			break;
+		case 43: /* 1-Wire temperature 4, double */
+			break;
+
+		case 50: /* IO0 sample mean, double */
+			break;
+		case 51: /* IO1 sample mean, double */
+			break;
+
+
+		// FIXME: no alt?
+	}
+}
+
 /*
  * Parse the elements out of an owa11 "record" (e.g. D|O|xxx|yyy|...)
- * and construct an OwnTracks JSON message to stdout.
+ * and construct an OwnTracks JSON message to stdout. Most of the xxx
+ * and yyy are actually subtype;value, where subtype is an integer
+ * which represents the meaning of value.
  */
 
 void parse_to_json(char *portion)
@@ -55,33 +127,13 @@ void parse_to_json(char *portion)
 				continue;
 			}
 
-			/* n;value */
+			/* subtype;value */
 			if ((bp = strchr(p, ';')) != NULL) {
 				int subtype = atoi(p);
 				bp++;
 
-				switch (subtype) {
-					case 2:
-						json_append_member(o, "batt", json_mknumber(atof(bp)));
-						break;
-					case 5:
-						json_append_member(o, "lat", json_mknumber(atof(bp)));
-						break;
-					case 6:
-						json_append_member(o, "lon", json_mknumber(atof(bp)));
-						break;
-					case 12:
-						json_append_member(o, "trip", json_mknumber(atol(bp)));
-						break;
-					case 16:
-						json_append_member(o, "vel", json_mknumber(atol(bp)));
-						break;
-					case 19:
-						json_append_member(o, "cog", json_mknumber(atol(bp)));
-						break;
+				append(o, subtype, bp);
 
-					// FIXME: no alt?
-				}
 			}
 		}
 
@@ -115,12 +167,13 @@ void do_line(char *payload)
 	free(bufsave);
 }
 
-int main()
+int main(int argc, char **argv)
 {
 	char buf[8192];
 
 	setbuf(stdout, NULL);
 
+	/* Read "topic payload" or "payload" */
 	while (fgets(buf, sizeof(buf), stdin) != NULL) {
 		buf[strlen(buf) - 1] = 0;
 		char *sp = strchr(buf, ' ');
